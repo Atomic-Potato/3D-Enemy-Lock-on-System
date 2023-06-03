@@ -15,6 +15,12 @@ public class InputManager : MonoBehaviour{
         }
     }
 
+    public static float PlayerLockSwitch{
+        get{
+            return controlsMaps.GroundedMovement.SwitchLock.ReadValue<Vector2>().normalized.y;
+        }
+    }
+
     void Awake() {
         controlsMaps = new PlayerControlsMaps();    
     }

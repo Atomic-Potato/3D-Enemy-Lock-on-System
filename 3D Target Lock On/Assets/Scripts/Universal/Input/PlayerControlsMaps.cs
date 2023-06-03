@@ -41,6 +41,22 @@ public class @PlayerControlsMaps : IInputActionCollection, IDisposable
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """"
+                },
+                {
+                    ""name"": ""Lock"",
+                    ""type"": ""Button"",
+                    ""id"": ""a371f705-9a60-4e69-b1f2-984439b77216"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """"
+                },
+                {
+                    ""name"": ""Switch Lock"",
+                    ""type"": ""Value"",
+                    ""id"": ""20c643e6-3186-41ca-a380-0580411935e6"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """"
                 }
             ],
             ""bindings"": [
@@ -120,6 +136,28 @@ public class @PlayerControlsMaps : IInputActionCollection, IDisposable
                     ""action"": ""Jump"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c7eb2d41-7fbf-420c-aa7b-b8bb703b7d11"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Lock"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ab74b36c-4736-4b53-9dd5-b900ec3fec74"",
+                    ""path"": ""<Mouse>/scroll"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Switch Lock"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -131,6 +169,8 @@ public class @PlayerControlsMaps : IInputActionCollection, IDisposable
         m_GroundedMovement_Move = m_GroundedMovement.FindAction("Move", throwIfNotFound: true);
         m_GroundedMovement_Run = m_GroundedMovement.FindAction("Run", throwIfNotFound: true);
         m_GroundedMovement_Jump = m_GroundedMovement.FindAction("Jump", throwIfNotFound: true);
+        m_GroundedMovement_Lock = m_GroundedMovement.FindAction("Lock", throwIfNotFound: true);
+        m_GroundedMovement_SwitchLock = m_GroundedMovement.FindAction("Switch Lock", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -183,6 +223,8 @@ public class @PlayerControlsMaps : IInputActionCollection, IDisposable
     private readonly InputAction m_GroundedMovement_Move;
     private readonly InputAction m_GroundedMovement_Run;
     private readonly InputAction m_GroundedMovement_Jump;
+    private readonly InputAction m_GroundedMovement_Lock;
+    private readonly InputAction m_GroundedMovement_SwitchLock;
     public struct GroundedMovementActions
     {
         private @PlayerControlsMaps m_Wrapper;
@@ -190,6 +232,8 @@ public class @PlayerControlsMaps : IInputActionCollection, IDisposable
         public InputAction @Move => m_Wrapper.m_GroundedMovement_Move;
         public InputAction @Run => m_Wrapper.m_GroundedMovement_Run;
         public InputAction @Jump => m_Wrapper.m_GroundedMovement_Jump;
+        public InputAction @Lock => m_Wrapper.m_GroundedMovement_Lock;
+        public InputAction @SwitchLock => m_Wrapper.m_GroundedMovement_SwitchLock;
         public InputActionMap Get() { return m_Wrapper.m_GroundedMovement; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -208,6 +252,12 @@ public class @PlayerControlsMaps : IInputActionCollection, IDisposable
                 @Jump.started -= m_Wrapper.m_GroundedMovementActionsCallbackInterface.OnJump;
                 @Jump.performed -= m_Wrapper.m_GroundedMovementActionsCallbackInterface.OnJump;
                 @Jump.canceled -= m_Wrapper.m_GroundedMovementActionsCallbackInterface.OnJump;
+                @Lock.started -= m_Wrapper.m_GroundedMovementActionsCallbackInterface.OnLock;
+                @Lock.performed -= m_Wrapper.m_GroundedMovementActionsCallbackInterface.OnLock;
+                @Lock.canceled -= m_Wrapper.m_GroundedMovementActionsCallbackInterface.OnLock;
+                @SwitchLock.started -= m_Wrapper.m_GroundedMovementActionsCallbackInterface.OnSwitchLock;
+                @SwitchLock.performed -= m_Wrapper.m_GroundedMovementActionsCallbackInterface.OnSwitchLock;
+                @SwitchLock.canceled -= m_Wrapper.m_GroundedMovementActionsCallbackInterface.OnSwitchLock;
             }
             m_Wrapper.m_GroundedMovementActionsCallbackInterface = instance;
             if (instance != null)
@@ -221,6 +271,12 @@ public class @PlayerControlsMaps : IInputActionCollection, IDisposable
                 @Jump.started += instance.OnJump;
                 @Jump.performed += instance.OnJump;
                 @Jump.canceled += instance.OnJump;
+                @Lock.started += instance.OnLock;
+                @Lock.performed += instance.OnLock;
+                @Lock.canceled += instance.OnLock;
+                @SwitchLock.started += instance.OnSwitchLock;
+                @SwitchLock.performed += instance.OnSwitchLock;
+                @SwitchLock.canceled += instance.OnSwitchLock;
             }
         }
     }
@@ -230,5 +286,7 @@ public class @PlayerControlsMaps : IInputActionCollection, IDisposable
         void OnMove(InputAction.CallbackContext context);
         void OnRun(InputAction.CallbackContext context);
         void OnJump(InputAction.CallbackContext context);
+        void OnLock(InputAction.CallbackContext context);
+        void OnSwitchLock(InputAction.CallbackContext context);
     }
 }
