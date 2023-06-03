@@ -4,6 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerMovement : MonoBehaviour{
     #region INSPECTOR VARIABLES
+    [SerializeField] float rotationSmoothTime;
     [Header("MOVEMENT")]
     [Tooltip("Speed when the sprinting button is not pressed")]
     [SerializeField] float speed = 5f;
@@ -100,6 +101,7 @@ public class PlayerMovement : MonoBehaviour{
     float refVelocityX = 0f;
     float refVelocityY = 0f;
     float refVelocityZ = 0f;
+    float refRotationSmoothing = 0f;
     #endregion
 
     #region EXCECUTION
@@ -134,7 +136,6 @@ public class PlayerMovement : MonoBehaviour{
         velocity.y = rigidBody.velocity.y;
 
         Move();
-        RotateInCameraDirection();
         MultiplyFallingSpeed();
     }
 
@@ -169,6 +170,34 @@ public class PlayerMovement : MonoBehaviour{
     void Move(){
         SetMovementDirectionToInput();
 
+        HandleSlopes();
+
+        if(InputManager.PlayerMove == Vector2.zero){ // No movement applied
+            velocity = Decelerate(velocity, decelerationTime, isOnSlope);
+        }
+        else{
+            velocity = runInput ? Accelerate(velocity, runSpeed, accelerationTimeRunning, isOnSlope) : Accelerate(velocity, speed, accelerationTimeRunning, isOnSlope);
+            RotateInCameraDirection();
+        }
+        rigidBody.velocity = velocity;
+    }
+
+    Vector3 Accelerate(Vector3 current, float maxSpeed, float time, bool onSlope = false){
+        current.x = Mathf.SmoothDamp(current.x, maxSpeed * transform.forward.x, ref refVelocityX, time);
+        current.z = Mathf.SmoothDamp(current.z, maxSpeed * transform.forward.z, ref refVelocityZ, time);
+        if(onSlope)
+            current.y = Mathf.SmoothDamp(current.y, maxSpeed * movementDirectionOnGround.y, ref refVelocityY, time);
+        return current;
+    }
+    Vector3 Decelerate(Vector3 current, float time, bool onSlope = false){
+        current.x = Mathf.SmoothDamp(current.x, 0, ref refVelocityX, time); 
+        current.z = Mathf.SmoothDamp(current.z, 0, ref refVelocityZ, time);
+        if(onSlope)
+            current.y = Mathf.SmoothDamp(current.y, 0, ref refVelocityY, time); 
+        return current;
+    }
+
+    void HandleSlopes(){
         isOnSlope = OnSlope(); 
         if(isOnSlope){
             if(slopeAngle > maxSlopeAngle){
@@ -181,29 +210,6 @@ public class PlayerMovement : MonoBehaviour{
             movementDirectionOnGround.y = 0; // (Doesnt affect velocity) Fixes an issue in DrawMovementDirection() where the direction points downwards. Not sure why.
         
         rigidBody.useGravity = !isOnSlope; // Disabling gravity on slopes to stop sliding
-
-        if(InputManager.PlayerMove == Vector2.zero){ // No movement applied
-            velocity = Decelerate(velocity, decelerationTime, isOnSlope);
-        }
-        else{
-            velocity = runInput ? Accelerate(velocity, runSpeed, accelerationTimeRunning, isOnSlope) : Accelerate(velocity, speed, accelerationTimeRunning, isOnSlope);
-        }
-        rigidBody.velocity = velocity;
-    }
-
-    Vector3 Accelerate(Vector3 current, float maxSpeed, float time, bool onSlope = false){
-        current.x = Mathf.SmoothDamp(current.x, maxSpeed * movementDirectionOnGround.x, ref refVelocityX, time);
-        current.z = Mathf.SmoothDamp(current.z, maxSpeed * movementDirectionOnGround.z, ref refVelocityZ, time);
-        if(onSlope)
-            current.y = Mathf.SmoothDamp(current.y, maxSpeed * movementDirectionOnGround.y, ref refVelocityY, time);
-        return current;
-    }
-    Vector3 Decelerate(Vector3 current, float time, bool onSlope = false){
-        current.x = Mathf.SmoothDamp(current.x, 0, ref refVelocityX, time); 
-        current.z = Mathf.SmoothDamp(current.z, 0, ref refVelocityZ, time);
-        if(onSlope)
-            current.y = Mathf.SmoothDamp(current.y, 0, ref refVelocityY, time); 
-        return current;
     }
 
     bool OnSlope(){
@@ -237,14 +243,17 @@ public class PlayerMovement : MonoBehaviour{
     }
 
     void SetMovementDirectionToInput(){
-        movementDirectionOnGround.x = InputManager.PlayerMove.x;
-        movementDirectionOnGround.z = InputManager.PlayerMove.y;
+        // movementDirectionOnGround.x = InputManager.PlayerMove.x;
+        // movementDirectionOnGround.z = InputManager.PlayerMove.y;
+        movementDirectionOnGround.x = transform.forward.x;
+        movementDirectionOnGround.z = transform.forward.z;
     }
     #endregion
 
     #region ROTATION
     void RotateInCameraDirection(){
-        transform.eulerAngles = new Vector3(transform.eulerAngles.x, cameraTransform.eulerAngles.y, transform.eulerAngles.z);
+        float targetRotation = Mathf.Atan2(InputManager.PlayerMove.x, InputManager.PlayerMove.y) * Mathf.Rad2Deg + cameraTransform.eulerAngles.y;
+        transform.eulerAngles = Vector3.up * Mathf.SmoothDampAngle(transform.eulerAngles.y, targetRotation, ref refRotationSmoothing, rotationSmoothTime); 
     }
     #endregion
 
