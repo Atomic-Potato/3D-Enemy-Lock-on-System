@@ -12,6 +12,9 @@ public class CameraManager : MonoBehaviour{
     #region EXECUTION
     private void Start() {
         strategy = cameraFollow;
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     private void LateUpdate() {

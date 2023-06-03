@@ -84,6 +84,7 @@ public class PlayerMovement : MonoBehaviour{
     Vector3 velocity = Vector2.zero;    
     Vector3 movementDirectionOnGround = Vector3.zero;
     RaycastHit slopeHit;
+    Transform cameraTransform;
 
     // STATES
     [HideInInspector] public bool isGrounded;
@@ -106,6 +107,8 @@ public class PlayerMovement : MonoBehaviour{
         UpdateJumpVelocity();
         RemoveBouncinessOnCollision();
         SubscribeToRunInput();
+
+        cameraTransform = Camera.main.transform;
     }
 
     void Update(){
@@ -130,7 +133,8 @@ public class PlayerMovement : MonoBehaviour{
     void FixedUpdate() {
         velocity.y = rigidBody.velocity.y;
 
-        Move();    
+        Move();
+        RotateInCameraDirection();
         MultiplyFallingSpeed();
     }
 
@@ -235,6 +239,12 @@ public class PlayerMovement : MonoBehaviour{
     void SetMovementDirectionToInput(){
         movementDirectionOnGround.x = InputManager.PlayerMove.x;
         movementDirectionOnGround.z = InputManager.PlayerMove.y;
+    }
+    #endregion
+
+    #region ROTATION
+    void RotateInCameraDirection(){
+        transform.eulerAngles = new Vector3(transform.eulerAngles.x, cameraTransform.eulerAngles.y, transform.eulerAngles.z);
     }
     #endregion
 
